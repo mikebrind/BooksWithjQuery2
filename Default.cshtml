@@ -1,0 +1,228 @@
+﻿@{
+    var db = Database.Open("Books");    
+    var authors = db.Query("SELECT AuthorId, FirstName + ' ' + LastName AS AuthorName FROM Authors");
+    var categories = db.Query("SELECT CategoryId, Category FROM Categories");
+}
+<!DOCTYPE html>
+<html>
+
+    <head>
+        <title>Manage Books</title>
+        <link type="text/css" href="@Href("~/Styles/jquery-ui-1.8.4.custom.css")" rel="stylesheet" />
+        <link type="text/css" href="@Href("~/Styles/StyleSheet.css")" rel="stylesheet" />
+        <script type="text/javascript" src="@Href("~/Scripts/jquery-1.4.2.min.js")"></script>
+        <script type="text/javascript" src="@Href("~/Scripts/jquery-ui-1.8.4.custom.min.js")"></script>
+        <script type="text/javascript">
+            $(function () {
+                $('#dialog-form-add').dialog({
+                    autoOpen: false,
+                    modal: true,
+                    height: 425,
+                    width: 475,
+                    buttons: {
+                        'Add Book': function () {
+                            $.ajax({
+                                type: "POST",
+                                url: $("#add-book-form").attr('action'),
+                                data: $("#add-book-form").serialize(),
+                                dataType: "text/plain",
+                                success: function (response) {
+                                    $('#dialog-form-add').dialog('close');
+                                    $("#grid").load('/Default/ #grid', function () {
+                                        $('tbody > tr:first')
+                                    .effect("highlight", {}, 2000);
+                                    });
+                                },
+                                error: function (response) {
+                                    alert(response);
+                                    $('#dialog-form').dialog('close');
+                                }
+                            });
+                        },
+                        Cancel: function () {
+                            $('#dialog-form-add').dialog('close');
+                        }
+                    }
+                });
+                $('#datePublished').datepicker({ dateFormat: 'yy-mm-dd' });
+
+
+                $('#add-book')
+                .button().click(function () {
+                    $('#dialog-form-add').dialog('open');
+                });
+
+
+                $('#dialog-form-edit').dialog({
+                    autoOpen: false,
+                    modal: true,
+                    height: 425,
+                    width: 475,
+                    buttons: {
+                        'Edit Book': function () {
+                            $.ajax({
+                                type: "POST",
+                                url: $("#edit-book-form").attr('action'),
+                                data: $("#edit-book-form").serialize(),
+                                dataType: "text/plain",
+                                success: function (response) {
+                                    $('#dialog-form-edit').dialog('close');
+                                    $("#grid").load('/Default/?page=' + page + ' #grid', function () {
+                                        var id = $('#edit-bookId').val();
+                                        $('#' + id).parent('td').parent('tr')
+                                    .effect("highlight", {}, 2000);
+                                    });
+                                },
+                                error: function (response) {
+                                    alert(response);
+                                    $('#dialog-form-edit').dialog('close');
+                                }
+                            });
+                        },
+                        Cancel: function () {
+                            $('#dialog-form-edit').dialog('close');
+                        }
+                    }// end buttons
+                });
+
+
+                //still need to retain sort and sortdir
+                var page = 1;
+                $('tfoot a').live('click', function () {
+                    page = $(this).text();
+                });
+
+
+                $('.edit-book').live('click', function () {
+                    $.getJSON('/Methods/GetBook/' + $(this).attr('id'), function (data) {
+                        var book = data;
+                        $('#edit-title').val(book.Title);
+                        $('#edit-isbn').val(book.ISBN);
+                        $('#edit-description').val(book.Description);
+                        $('#edit-authorId').val(book.AuthorId);
+                        $('#edit-categoryId').val(book.CategoryId);
+                        var date = new Date(parseInt(book.DatePublished.substr(6)));
+                        var year = date.getFullYear();
+                        var month = date.getMonth() + 1;
+                        var day = date.getDate();
+                        $('#edit-datePublished').val(year + '-' + month + '-' + day);
+                        $('#edit-datePublished').datepicker({ dateFormat: 'yy-mm-dd' });
+                        $('#edit-bookId').val(book.BookId);
+                    });
+                    $('#dialog-form-edit').dialog('open');
+                });
+            });
+        </script>
+    </head>
+    <body>
+    
+    <div id="grid" class="ui-widget">
+        @RenderPage("~/Partials/BookGrid.cshtml")
+    </div>
+    
+    <p><button id="add-book">Add New Book</button></p>
+    
+    <div id="dialog-form-add" title="Add New Book">
+    <form id="add-book-form" action="@Href("~/Methods/AddBook")">
+         <div class="row">
+                <span class="label"><label for="title">Title:</label></span>
+                <input type="text" name="title" id="title" size="50" />
+            </div>
+            <div class="row">
+                <span class="label"><label for="isbn">ISBN:</label></span>
+                <input type="text" name="isbn" id="isbn" size="20" />
+            </div>
+            <div class="row">
+                <span class="label"><label for="description">Description:</label></span>
+                <textarea cols="50" rows="8" name="description" id="description"></textarea>
+            </div>
+            <div class="row">
+                <span class="label"><label for="authorId">Author:</label></span>
+                <select name="authorId" id="authorId">
+                    <option value="">-- Select Author --</option>
+                @{
+                    foreach(var author in authors){
+                        if(author.AuthorId == Request["authorId"].AsInt()){
+                            <option value="@author.AuthorId" selected="selected">@author.AuthorName</option>
+                        } else {
+                            <option value="@author.AuthorId">@author.AuthorName</option>
+                        }
+                    }
+                }
+                </select>
+            </div>
+            <div class="row">
+                <span class="label"><label for="categoryId">Category:</label></span>
+                <select name="categoryId" id="categoryId">
+                    <option value="">-- Select Category --</option>
+                @{
+                    foreach(var category in categories){
+                        if(category.CategoryId == Request["categoryId"].AsInt()){
+                            <option value="@category.CategoryId" selected="selected">@category.Category</option>
+                        } else {
+                            <option value="@category.CategoryId">@category.Category</option>
+                        }        
+                    }
+                }
+                </select>
+            </div>
+            <div class="row">
+                <span class="label"><label for="datePublished">Date Published:</label></span>
+                <input type="text" id="datePublished" name="datePublished" />
+            </div>    
+        </form>
+    </div>
+        
+    <div id="dialog-form-edit" title="Edit Book">
+    <form id="edit-book-form" action="@Href("~/Methods/UpdateBook")">
+         <div class="row">
+                <span class="label"><label for="title">Title:</label></span>
+                <input type="text" name="title" id="edit-title" size="50" />
+            </div>
+            <div class="row">
+                <span class="label"><label for="isbn">ISBN:</label></span>
+                <input type="text" name="isbn" id="edit-isbn" size="20" />
+            </div>
+            <div class="row">
+                <span class="label"><label for="description">Description:</label></span>
+                <textarea cols="50" rows="8" name="description" id="edit-description"></textarea>
+            </div>
+            <div class="row">
+                <span class="label"><label for="authorId">Author:</label></span>
+                <select name="authorId" id="edit-authorId">
+                    <option value="">-- Select Author --</option>
+                @{
+                    foreach(var author in authors){
+                        if(author.AuthorId == Request["authorId"].AsInt()){
+                            <option value="@author.AuthorId" selected="selected">@author.AuthorName</option>
+                        } else {
+                            <option value="@author.AuthorId">@author.AuthorName</option>
+                        }
+                    }
+                }
+                </select>
+            </div>
+            <div class="row">
+                <span class="label"><label for="categoryId">Category:</label></span>
+                <select name="categoryId" id="edit-categoryId">
+                    <option value="">-- Select Category --</option>
+                @{
+                    foreach(var category in categories){
+                        if(category.CategoryId == Request["categoryId"].AsInt()){
+                            <option value="@category.CategoryId" selected="selected">@category.Category</option>
+                        } else {
+                            <option value="@category.CategoryId">@category.Category</option>
+                        }        
+                    }
+                }
+                </select>
+            </div>
+            <div class="row">
+                <span class="label"><label for="datePublished">Date Published:</label></span>
+                <input type="text" id="edit-datePublished" name="datePublished" />
+                <input type="hidden" id="edit-bookId" name="bookId" />
+            </div>    
+        </form>
+    </div>    
+    </body>
+</html>

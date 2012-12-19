@@ -1,0 +1,36 @@
+﻿body {
+    font-family: verdana;
+    font-size: 70%;
+}
+input, textarea, select{
+    font-family: "Trebuchet MS";
+}
+
+h2{
+    color: blue;
+}
+
+#footer{
+    text-align: center;
+    background-color: #eee;
+    padding: 10px;
+    margin: 10px 0 0 0;
+}
+
+.row
+{
+  clear: both;
+}
+
+.label
+{
+  float: left;
+  text-align: right;
+  width: 100px;
+  padding-right: 5px;
+}
+
+.highlight{
+    background: #ffff99;
+    cursor: pointer;
+}

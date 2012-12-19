@@ -1,0 +1,18 @@
+﻿@{
+    if(IsPost){
+        var db = Database.Open("Books");
+        var sql = @"INSERT INTO Books (Title, ISBN, Description, AuthorId, CategoryId, DatePublished) 
+                    VALUES (@0, @1, @2, @3, @4, @5)";
+        var title = Request["title"];
+        var isbn = Request["isbn"];
+        var description = Request["description"];
+        var authorId = Request["authorId"];
+        var categoryId = Request["categoryId"];
+        object datePublished = Request["datePublished"];
+        if(Request["datePublished"].IsEmpty()){
+            datePublished = DBNull.Value;
+        }
+            db.Execute(sql, title, isbn, description, authorId, categoryId, datePublished);
+        }
+    }
+}

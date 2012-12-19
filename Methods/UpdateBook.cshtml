@@ -1,0 +1,15 @@
+﻿@{
+    if(IsPost){
+        var db = Database.Open("Books");
+        var sql = @"UPDATE Books SET Title = @0, ISBN = @1, Description = @2, AuthorId = @3, 
+                    CategoryId = @4, DatePublished = @5 WHERE BookId = @6";
+        var title = Request["title"];
+        var isbn = Request["isbn"];
+        var description = Request["description"];
+        var authorId = Request["authorId"];
+        var categoryId = Request["categoryId"];
+        var datePublished = Request["datePublished"];
+        var bookId = Request["bookid"];
+        db.Execute(sql, title, isbn, description, authorId, categoryId, datePublished, bookId);
+    }
+}

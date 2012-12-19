@@ -1,0 +1,9 @@
+﻿@{
+    Response.Cache.SetCacheability(HttpCacheability.NoCache);
+    if(UrlData[0].IsInt()){
+        var db = Database.Open("Books");
+        var sql = "SELECT * FROM Books WHERE BookId = @0";
+        var book = db.QuerySingle(sql,UrlData[0]);
+        Json.Write(book, Response.Output);
+    }
+}

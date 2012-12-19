@@ -1,0 +1,20 @@
+﻿@{
+    var db = Database.Open("Books"); 
+    var books = db.Query("SELECT BookId, Title, ISBN, Description, " + 
+        "FirstName + ' ' + LastName AS AuthorName, Category " + 
+        "FROM Books INNER JOIN Authors ON Books.AuthorId = Authors.AuthorId " + 
+        "INNER JOIN Categories ON Books.CategoryId = Categories.CategoryId ORDER BY BookId DESC");
+    var grid = new WebGrid(books, ajaxUpdateContainerId : "grid");                    
+}
+
+@grid.GetHtml(tableStyle: "ui-widget ui-widget-content",
+                    headerStyle : "ui-widget-header",
+                    columns : grid.Columns(
+                    grid.Column("", format: @<button class="edit-book" id="@item.BookId">Edit</button>),
+                    grid.Column("Title"),
+                    grid.Column("AuthorName",
+                                    header : "Author"),
+                    grid.Column("Category"),
+                    grid.Column("ISBN")
+                )    
+    )
